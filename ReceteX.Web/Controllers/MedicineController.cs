@@ -11,21 +11,21 @@ using Microsoft.AspNetCore.Hosting;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
+using ReceteX.Utility;
 
 namespace ReceteX.Web.Controllers
 {
     [Authorize]
     public class MedicineController : Controller
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<MedicineController> _logger;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IUnitOfWork unitOfWork;
+        private readonly XmlRetriever xmlRetriever;
 
-        public MedicineController(ILogger<MedicineController> logger, IWebHostEnvironment webHostEnvironment, IUnitOfWork unitOfWork)
+        public MedicineController(IUnitOfWork unitOfWork, XmlRetriever xmlRetriever)
         {
-            _logger = logger;
-            _webHostEnvironment = webHostEnvironment;
-            _unitOfWork = unitOfWork;
+            this.unitOfWork = unitOfWork;
+            this.xmlRetriever = xmlRetriever;
         }
 
         public IActionResult Index()
@@ -33,42 +33,62 @@ namespace ReceteX.Web.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Update()
+        public async Task<IActionResult> ParseAndSaveFromXml(string xmlContent)
         {
-            List<Medicine> allMedicines = _unitOfWork.Medicines.GetAll().ToList<Medicine>();
-            _unitOfWork.Medicines.ClearRange(allMedicines);
-            _unitOfWork.Save();
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlContent);
+            XmlNodeList medicines = xmlDoc.SelectNodes("/ilaclar/ilac");
 
-            List<Medicine> medicines = new List<Medicine>();
-
-            string xmlUrl = "http://www.ibys.com.tr/exe/ilaclar.xml";
-
-            using (HttpClient httpClient = new HttpClient())
+            foreach (XmlNode medicine in medicines)
             {
-                    string xmlData = await httpClient.GetStringAsync(xmlUrl);
+                Medicine med = new Medicine();
 
-                    XmlDocument xmlDocument = new XmlDocument();
-                    xmlDocument.LoadXml(xmlData);
-
-                    foreach (XmlNode xml in xmlDocument.SelectNodes("/ilaclar/ilac"))
-                    {
-                        
-                            medicines.Add(new Medicine
-                            {
-                                Barcode = xml["barkod"]?.InnerText,
-                                Name = xml["ad"]?.InnerText
-                            });                        
-                    }
-                    _unitOfWork.Medicines.AddRange(medicines);
-                    _unitOfWork.Save();
+                med.Name = medicine.SelectSingleNode("ad").InnerText;
+                med.Barcode = medicine.SelectSingleNode("barkod").InnerText;
+                unitOfWork.Medicines.Add(med);
             }
+            unitOfWork.Save();
+            return Ok();
+
+
+
+            //List<Medicine> allMedicines = unitOfWork.Medicines.GetAll().ToList<Medicine>();
+            //unitOfWork.Medicines.ClearRange(allMedicines);
+            //unitOfWork.Save();
+            //List<Medicine> medicines = new List<Medicine>();
+            //string xmlUrl = "http://www.ibys.com.tr/exe/ilaclar.xml";
+            //using (HttpClient httpClient = new HttpClient())
+            //{
+            //    string xmlData = await httpClient.GetStringAsync(xmlUrl);
+            //    XmlDocument xmlDocument = new XmlDocument();
+            //    xmlDocument.LoadXml(xmlData);
+
+            //    foreach (XmlNode xml in xmlDocument.SelectNodes("/ilaclar/ilac"))
+            //    {
+
+            //        medicines.Add(new Medicine
+            //        {
+            //            Barcode = xml["barkod"]?.InnerText,
+            //            Name = xml["ad"]?.InnerText
+            //        });
+            //    }
+            //    unitOfWork.Medicines.AddRange(medicines);
+            //    unitOfWork.Save();
+            //}
+            //return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> UpdateMedicinesList()
+        {
+            string content = await xmlRetriever.GetXmlContent("http://www.ibys.com.tr/exe/ilaclar.xml");
+            await ParseAndSaveFromXml(content);
 
             return RedirectToAction("Index");
         }
 
         public IActionResult GetAll()
         {
-            return Json(new { data = _unitOfWork.Medicines.GetAll() });
+            return Json(new { data = unitOfWork.Medicines.GetAll() });
         }
     }
 }

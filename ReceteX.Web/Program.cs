@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using ReceteX.Data;
 using ReceteX.Repository.Shared.Abstract;
 using ReceteX.Repository.Shared.Concrete;
+using ReceteX.Utility;
+using System.Xml;
 
 namespace ReceteX.Web
 {
@@ -25,6 +27,7 @@ namespace ReceteX.Web
 
             //Repository için dependincy enjection gerekli olan komut.
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<XmlRetriever>();                                               
 
             // Add services to the container.
             builder.Services.AddControllersWithViews().AddNewtonsoftJson(options =>

@@ -2,7 +2,6 @@
     <div class="card">
         <div class="card-header  text-white bg-success bg-gradient">
             Kullanıcı Listesi
-
             <a href="#" id="btnEkle" class="btn btn-warning ml-4 ">Ekle</a>
         </div>
         <div class="card-body">
@@ -63,7 +62,6 @@
                         <label class="form-label">Şehir Kodu</label>
                         <input type="text" id="txtCityCode" class="form-control txt">
                     </div>
-
 
                     <div class="mb-3">
                         <label for="Authorization" class="form-label">Yetki</label><br />
@@ -128,8 +126,6 @@
                     })
                 });
             });
-
-
         })
 
         function fillDataTable() {
@@ -158,9 +154,9 @@
                     {
                         data: 'isActive', title: 'Durum', className: 'text-center', render: function (data, type, row) {
                             if (data) {
-                                return `<a class="btn btn-sm btn-success" style="opacity: 0.8;" onclick="userChangeState('${row.id}')">Aktif</a>`
+                                return `<a class="btn btn-sm btn-success" style="opacity: 0.8;" onclick="userChangeStatus('${row.id}')">Aktif</a>`
                             } else {
-                                return `<a class="btn btn-sm btn-dark" style="opacity: 0.8;" onclick="userChangeState('${row.id}')">Pasif</a>`
+                                return `<a class="btn btn-sm btn-dark" style="opacity: 0.8;" onclick="userChangeStatus('${row.id}')">Pasif</a>`
                             }
                         }
                     },
@@ -217,18 +213,15 @@
                             data: {
                                 id: res.id,
                                 customerId: $("#ddlCustomerSelect option:selected").val(),
-                                name: $("#txtName").val(),
                                 surname: $("#txtSurname").val(),
                                 email: $("#txtEmail").val(),
-                                password: res.password,
                                 gsm: $("#txtGsm").val(),
                                 tckn: $("#txtTckn").val(),
-                                medulaPassword: $("#txtMedulaPassword").val(),
                                 pinCode: $("#txtPinCode").val(),
                                 cityCode: $("#txtCityCode").val(),
+                                medulaPassword: $("#txtMedulaPassword").val(),
                                 isAdmin: function () { return ($("input[name='Authorization']:checked").val() === "true") },
-                                sActive: function () { return ($("input[name='Active']:checked").val() === "true") },
-                                customer: res.customer
+                                name: $("#txtName").val()
                             },
                             success: function (res) {
                                 $("#modal").modal('hide');
@@ -238,7 +231,6 @@
                         });
                     });
                 }
-
             });
         }
 
@@ -288,7 +280,7 @@
             })
         }
 
-        function userChangeState(userId) {
+        function userChangeStatus(userId) {
             Swal.fire({
                 title: 'Kullancının Durumunu Değiştirmek İstediğinize Emin Misiniz?',
                 text: "Kullanıcı durumu değişecek",
@@ -301,7 +293,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: 'POST',
-                        url: '/User/UserChangeState',
+                        url: '/User/UserChangeStatus',
                         data: { id: userId },
                         success: function () {
                             Swal.fire(

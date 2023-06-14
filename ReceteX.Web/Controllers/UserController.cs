@@ -67,16 +67,11 @@ namespace ReceteX.Web.Controllers
             AppUser asil = unitOfWork.Users.GetFirstOrDefault(u => u.Id == appUser.Id);
 
             appUser.Id = asil.Id;
-            appUser.Id = asil.Id;
-            appUser.Id = asil.Id;
-            appUser.Id = asil.Id;
-            appUser.Id = asil.Id;
-            appUser.Id = asil.Id;
-            appUser.Id = asil.Id;
-
-
-
-
+            appUser.Password = asil.Password;
+            appUser.isRememberMe = asil.isRememberMe;
+            appUser.DateCreated = asil.DateCreated;
+            appUser.isActive = asil.isActive;
+            
             unitOfWork.Users.Update(appUser);
             unitOfWork.Save();
             return Ok();
@@ -94,7 +89,7 @@ namespace ReceteX.Web.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public IActionResult UserChangeState(Guid id)
+        public IActionResult UserChangeStatus(Guid id)
         {
             AppUser asil = unitOfWork.Users.GetById(id);
             if (asil.isActive)

@@ -21,7 +21,7 @@ namespace ReceteX.Repository.Shared.Concrete
 
         public IRepository<DescriptionType> DescriptionTypes { get; private set; }
 
-        public IRepository<Diagnosis> Diagnoses { get; private set; }
+        public IDiagnosisRepository Diagnoses { get; private set; }
 
         public IMedicineRepository Medicines { get; private set; }
 
@@ -44,7 +44,7 @@ namespace ReceteX.Repository.Shared.Concrete
             Customers = new CustomerRepository(db);
             Descriptions = new Repository<Description>(db);
             DescriptionTypes = new Repository<DescriptionType>(db);
-            Diagnoses = new Repository<Diagnosis>(db);
+            Diagnoses = new DiagnosisRepository(db);
             Medicines = new MedicineRepository(db);
             MedicineUsagePeriods = new Repository<MedicineUsagePeriod>(db);
             MedicineUsageTypes = new Repository<MedicineUsageType>(db);

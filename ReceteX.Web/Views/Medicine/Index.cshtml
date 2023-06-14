@@ -1,12 +1,8 @@
-﻿@{
-    ViewData["Title"] = "İlaç Listesi";
-}
-
-<div>
+﻿<div>
     <div class="card">
         <div class="card-header text-white bg-success bg-gradient">
             <span class="fs-4">İlaç Listesi</span>
-            <a href="#" id="btnGuncelle" onclick="updateMedicines()" class="btn btn-warning ms-2">Güncelle</a>
+            <a asp-action="UpdateMedicinesList" asp-controller="Medicine" id="btnGuncelle" onclick="updateMedicines()" class="btn btn-warning ms-2">Listeyi Güncelle</a>
         </div>
         <div class="card-body">
             <table id="tblMedicines" class="table table-bordered table-striped" style="width:100%">
@@ -33,7 +29,7 @@
         function updateMedicines() {
             $.ajax({
                 type: 'GET',
-                url: '/Medicine/Update',
+                url: '/Medicine/UpdateMedicinesList',
                 success: function (res) {
                     toastr.success("İlaçlar başarıyla güncellendi");
                     DataTable.ajax.reload();    

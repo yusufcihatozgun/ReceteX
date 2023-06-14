@@ -41,6 +41,21 @@ namespace ReceteX.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Diagnoses",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Diagnoses", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Medicines",
                 columns: table => new
                 {
@@ -195,24 +210,27 @@ namespace ReceteX.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Diagnoses",
+                name: "DiagnosisPrescription",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PrescriptionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    DiagnosesId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    prescriptionsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Diagnoses", x => x.Id);
+                    table.PrimaryKey("PK_DiagnosisPrescription", x => new { x.DiagnosesId, x.prescriptionsId });
                     table.ForeignKey(
-                        name: "FK_Diagnoses_Prescriptions_PrescriptionId",
-                        column: x => x.PrescriptionId,
+                        name: "FK_DiagnosisPrescription_Diagnoses_DiagnosesId",
+                        column: x => x.DiagnosesId,
+                        principalTable: "Diagnoses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DiagnosisPrescription_Prescriptions_prescriptionsId",
+                        column: x => x.prescriptionsId,
                         principalTable: "Prescriptions",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -272,9 +290,9 @@ namespace ReceteX.Data.Migrations
                 column: "PrescriptionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Diagnoses_PrescriptionId",
-                table: "Diagnoses",
-                column: "PrescriptionId");
+                name: "IX_DiagnosisPrescription_prescriptionsId",
+                table: "DiagnosisPrescription",
+                column: "prescriptionsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PrescriptionMedicines_MedicineId",
@@ -319,13 +337,16 @@ namespace ReceteX.Data.Migrations
                 name: "Descriptions");
 
             migrationBuilder.DropTable(
-                name: "Diagnoses");
+                name: "DiagnosisPrescription");
 
             migrationBuilder.DropTable(
                 name: "PrescriptionMedicines");
 
             migrationBuilder.DropTable(
                 name: "DescriptionTypes");
+
+            migrationBuilder.DropTable(
+                name: "Diagnoses");
 
             migrationBuilder.DropTable(
                 name: "MedicineUsagePeriodes");
