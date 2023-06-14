@@ -15,7 +15,7 @@ namespace ReceteX.Repository.Shared.Abstract
         IRepository<Description> Descriptions { get; }
         IRepository<DescriptionType> DescriptionTypes { get; }
         IRepository<Diagnosis> Diagnoses { get; }
-        IRepository<Medicine> Medicines { get; }
+        IMedicineRepository Medicines { get; }
         IRepository<MedicineUsagePeriod> MedicineUsagePeriods { get; }
         IRepository<MedicineUsageType> MedicineUsageTypes { get; }
         IRepository<Prescription> Prescriptions { get; }

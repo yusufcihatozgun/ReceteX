@@ -7,10 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ReceteX.Repository.Abstract
-{        //xml için. silinebilir.
-
+{
     public interface IMedicineRepository : IRepository<Medicine>
     {
-        public Task ParseAndSaveMedicinesFromXml(string xmlContent);
+        public void ClearRange(List<Medicine> medicines);
     }
 }
