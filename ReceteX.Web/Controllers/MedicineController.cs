@@ -45,8 +45,6 @@ namespace ReceteX.Web.Controllers
 
             using (HttpClient httpClient = new HttpClient())
             {
-                try
-                {
                     string xmlData = await httpClient.GetStringAsync(xmlUrl);
 
                     XmlDocument xmlDocument = new XmlDocument();
@@ -63,13 +61,6 @@ namespace ReceteX.Web.Controllers
                     }
                     _unitOfWork.Medicines.AddRange(medicines);
                     _unitOfWork.Save();
-                }
-                catch (Exception ex)
-                {
-                    // Handle the exception appropriately
-                    // You can log the exception or display an error message
-                    _logger.LogError(ex, "Error occurred while loading the XML data from the URL.");
-                }
             }
 
             return RedirectToAction("Index");
