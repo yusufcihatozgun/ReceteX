@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using ReceteX.Repository.Shared.Abstract;
 using ReceteX.Repository.Shared.Concrete;
 using ReceteX.Models;
-
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace ReceteX.Web.Controllers
 {
@@ -25,5 +26,19 @@ namespace ReceteX.Web.Controllers
         {
             return Json(unitOfWork.Medicines.GetAll());
         }
+
+
+        //xml için. silinebilir.
+        public async Task<string> GetXmlContent(string url)
+        {
+            using (var client = new HttpClient())
+            {
+                HttpResponseMessage response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                return await response.Content.ReadAsStringAsync();
+            }
+        }
+
     }
 }

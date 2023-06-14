@@ -64,6 +64,18 @@ namespace ReceteX.Web.Controllers
         [HttpPost]
         public IActionResult Update(AppUser appUser)
         {
+            AppUser asil = unitOfWork.Users.GetFirstOrDefault(u => u.Id == appUser.Id);
+
+            appUser.Id = asil.Id;
+            appUser.Id = asil.Id;
+            appUser.Id = asil.Id;
+            appUser.Id = asil.Id;
+            appUser.Id = asil.Id;
+            appUser.Id = asil.Id;
+            appUser.Id = asil.Id;
+
+
+
 
             unitOfWork.Users.Update(appUser);
             unitOfWork.Save();
@@ -80,6 +92,27 @@ namespace ReceteX.Web.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public IActionResult UserChangeState(Guid id)
+        {
+            AppUser asil = unitOfWork.Users.GetById(id);
+            if (asil.isActive)
+            {
+                asil.isActive = false;
+                unitOfWork.Users.Update(asil);
+                unitOfWork.Save();
+                return Ok();
+            }
+            else
+            {
+                asil.isActive = true;
+                unitOfWork.Users.Update(asil);
+                unitOfWork.Save();
+                return Ok();
+            }
+        }
+       
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
