@@ -17,6 +17,9 @@ namespace ReceteX.Repository.Shared.Abstract
         T GetById(Guid Id);
         T GetFirstOrDefault(Expression<Func<T, bool>> predicate);
 
+        public IQueryable<T> GetAllDeleted(Expression<Func<T, bool>> predicate);
+        public IQueryable<T> GetAllDeleted();
+
         void Add(T entity);
         void Update(T entity);
         void Remove(Guid Id);

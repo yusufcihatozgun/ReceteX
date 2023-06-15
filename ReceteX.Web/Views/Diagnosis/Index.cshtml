@@ -2,7 +2,7 @@
     <div class="card">
         <div class="card-header text-white bg-success bg-gradient">
             <span class="fs-4">Tanı Listesi</span>
-            <a href="#" id="btnGuncelle" onclick="updateDiagnosis()" class="btn btn-warning ms-2">Güncelle</a>
+            <a asp-action="UpdateDiagnosesList" asp-controller="Diagnosis" id="btnGuncelle" class="btn btn-warning ms-2">Güncelle</a>
         </div>
         <div class="card-body">
             <table id="tblDiagnoses" class="table table-bordered table-striped" style="width:100%">
@@ -26,19 +26,7 @@
             });
         });
 
-        function updateDiagnosis() {
-            $.ajax({
-                type: 'GET',
-                url: '/Diagnosis/UpdateDiagnosesList',
-                success: function (res) {
-                    toastr.success("Tanılar başarıyla güncellendi");
-                    DataTable.ajax.reload();
-                },
-                error: function (xhr, status, error) {
-                    toastr.error("Tanı güncelleme hatası: " + error);
-                }
-            });
-        }
+
     </script>
 }
 

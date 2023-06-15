@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using ReceteX.Utility;
+using Microsoft.EntityFrameworkCore;
 
 namespace ReceteX.Web.Controllers
 {
@@ -37,45 +38,50 @@ namespace ReceteX.Web.Controllers
         {
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlContent);
-            XmlNodeList medicines = xmlDoc.SelectNodes("/ilaclar/ilac");
+            XmlNodeList medicinesFromXml = xmlDoc.SelectNodes("/ilaclar/ilac");
 
-            foreach (XmlNode medicine in medicines)
+            IQueryable<Medicine> medicinesFromDbDeleted = unitOfWork.Medicines.GetAllDeleted().AsNoTracking().OrderBy(m => m.Name).ToList().AsQueryable<Medicine>();
+
+            IQueryable<Medicine> medicinesFromDb = unitOfWork.Medicines.GetAll().AsNoTracking().OrderBy(m => m.Name).ToList().AsQueryable<Medicine>();
+
+            foreach (XmlNode medicine in medicinesFromXml)
             {
-                Medicine med = new Medicine();
+                string barcode = medicine.SelectSingleNode("barkod").InnerText;
 
-                med.Name = medicine.SelectSingleNode("ad").InnerText;
-                med.Barcode = medicine.SelectSingleNode("barkod").InnerText;
-                unitOfWork.Medicines.Add(med);
+                if (!medicinesFromDb.Any(m => m.Barcode == barcode))
+                {
+                    Medicine med = new Medicine();
+                    med.Name = medicine.SelectSingleNode("ad").InnerText;
+                    med.Barcode = medicine.SelectSingleNode("barkod").InnerText;
+                    unitOfWork.Medicines.Add(med);
+                }
+                else if(medicinesFromDbDeleted.Any(x=>x.Barcode == barcode))
+                {
+                    Medicine medSilinmis = medicinesFromDbDeleted.FirstOrDefault(x => x.Barcode == barcode);
+
+                    if (medSilinmis != null)
+                    {
+                        medSilinmis.IsDeleted = false;
+                        unitOfWork.Medicines.Update(medSilinmis);
+                    }
+                }
+            }
+            unitOfWork.Save();
+
+
+            IEnumerable<XmlNode> medicinesFromXmlEnumerable = xmlDoc.SelectNodes("/ilaclar/ilac").Cast<XmlNode>();
+            foreach (var medicine in medicinesFromDb)
+            {
+                if(!medicinesFromXmlEnumerable.Any(x => x.SelectSingleNode("barkod").InnerText == medicine.Barcode))
+                {
+                    medicine.IsDeleted = true;
+                    unitOfWork.Medicines.Update(medicine));
+                }
+                
+
             }
             unitOfWork.Save();
             return Ok();
-
-
-
-            //List<Medicine> allMedicines = unitOfWork.Medicines.GetAll().ToList<Medicine>();
-            //unitOfWork.Medicines.ClearRange(allMedicines);
-            //unitOfWork.Save();
-            //List<Medicine> medicines = new List<Medicine>();
-            //string xmlUrl = "http://www.ibys.com.tr/exe/ilaclar.xml";
-            //using (HttpClient httpClient = new HttpClient())
-            //{
-            //    string xmlData = await httpClient.GetStringAsync(xmlUrl);
-            //    XmlDocument xmlDocument = new XmlDocument();
-            //    xmlDocument.LoadXml(xmlData);
-
-            //    foreach (XmlNode xml in xmlDocument.SelectNodes("/ilaclar/ilac"))
-            //    {
-
-            //        medicines.Add(new Medicine
-            //        {
-            //            Barcode = xml["barkod"]?.InnerText,
-            //            Name = xml["ad"]?.InnerText
-            //        });
-            //    }
-            //    unitOfWork.Medicines.AddRange(medicines);
-            //    unitOfWork.Save();
-            //}
-            //return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> UpdateMedicinesList()
@@ -90,5 +96,6 @@ namespace ReceteX.Web.Controllers
         {
             return Json(new { data = unitOfWork.Medicines.GetAll() });
         }
+
     }
 }
