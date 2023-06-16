@@ -3,15 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ReceteX.Repository.Shared.Abstract;
 using ReceteX.Repository.Shared.Concrete;
 using ReceteX.Models;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Xml;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Hosting;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml.Linq;
 using ReceteX.Utility;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,7 +47,7 @@ namespace ReceteX.Web.Controllers
                     med.Barcode = medicine.SelectSingleNode("barkod").InnerText;
                     unitOfWork.Medicines.Add(med);
                 }
-                else if(medicinesFromDbDeleted.Any(x=>x.Barcode == barcode))
+                else if (medicinesFromDbDeleted.Any(x => x.Barcode == barcode))
                 {
                     Medicine medSilinmis = medicinesFromDbDeleted.FirstOrDefault(x => x.Barcode == barcode);
 
@@ -72,12 +64,12 @@ namespace ReceteX.Web.Controllers
             IEnumerable<XmlNode> medicinesFromXmlEnumerable = xmlDoc.SelectNodes("/ilaclar/ilac").Cast<XmlNode>();
             foreach (var medicine in medicinesFromDb)
             {
-                if(!medicinesFromXmlEnumerable.Any(x => x.SelectSingleNode("barkod").InnerText == medicine.Barcode))
+                if (!medicinesFromXmlEnumerable.Any(x => x.SelectSingleNode("barkod").InnerText == medicine.Barcode))
                 {
                     medicine.IsDeleted = true;
-                    unitOfWork.Medicines.Update(medicine));
+                    unitOfWork.Medicines.Update(medicine);
                 }
-                
+
 
             }
             unitOfWork.Save();
@@ -96,6 +88,8 @@ namespace ReceteX.Web.Controllers
         {
             return Json(new { data = unitOfWork.Medicines.GetAll() });
         }
+
+        
 
     }
 }

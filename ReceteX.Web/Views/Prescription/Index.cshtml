@@ -1,52 +1,111 @@
-﻿<form>
-    <div class="form-row">
-        <div class="form-group col-md-6">
-            <label for="inputName">Name</label>
-            <input type="text" class="form-control" id="inputName" placeholder="Enter name">
+﻿@using ReceteX.Models;
+@model Prescription
+
+@section Styles{
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <style>
+    
+
+        .ui-autocomplete .ui-menu-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+            .ui-autocomplete .ui-menu-item:hover {
+                background-color: #f0f0f0;
+            }
+
+        .ui-autocomplete .ui-state-active {
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
+}
+
+<div>
+    <div class="card">
+        <div class="card-header  text-white bg-success bg-gradient text-center">
+            <span class="fs-6">Tanı Ekleme Bölümü</span>
         </div>
-        <div class="form-group col-md-6">
-            <label for="inputEmail">Email</label>
-            <input type="email" class="form-control" id="inputEmail" placeholder="Enter email">
-        </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group col-md-6">
-            <label for="inputPassword">Password</label>
-            <input type="password" class="form-control" id="inputPassword" placeholder="Enter password">
-        </div>
-        <div class="form-group col-md-6">
-            <label for="inputConfirmPassword">Confirm Password</label>
-            <input type="password" class="form-control" id="inputConfirmPassword" placeholder="Confirm password">
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="inputAddress">Address</label>
-        <input type="text" class="form-control" id="inputAddress" placeholder="Enter address">
-    </div>
-    <div class="form-row">
-        <div class="form-group col-md-6">
-            <label for="inputCity">City</label>
-            <input type="text" class="form-control" id="inputCity" placeholder="Enter city">
-        </div>
-        <div class="form-group col-md-4">
-            <label for="inputState">State</label>
-            <select id="inputState" class="form-control">
-                <option selected>Choose...</option>
-                <option>...</option>
-            </select>
-        </div>
-        <div class="form-group col-md-2">
-            <label for="inputZip">Zip</label>
-            <input type="text" class="form-control" id="inputZip" placeholder="Enter zip code">
+        <div class="card-body">
+            <div class="ui-widget">
+                <input type="text" id="diagnosis" name="diagnosis" class="form-control text-center" placeholder="Tanı adının veya kodunun en az ilk 3 harfini yazınız, sonra listeden seçiniz..." />
+                <input type="hidden" id="diagnosisId" name="diagnosisId" />
+            </div>
+            <div id="divDiagnoses" class="text-md-center mt-3">  </div>
+       
         </div>
     </div>
-    <div class="form-group">
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="gridCheck">
-            <label class="form-check-label" for="gridCheck">
-                Check me out
-            </label>
-        </div>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+</div>
+
+@section Scripts{
+
+
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
+    <script>
+     
+
+
+
+        function fillDiagnoses() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetDiagnoses", "Prescription")',
+                data: { 
+                    prescriptionId: '@Model.Id'},
+                success: function (res) {
+                    $("#divDiagnoses").empty();
+                    for (var diagnosis of res[0].diagnoses)
+                        $("#divDiagnoses").append(`<div>${diagnosis.name}</div>`);
+                }
+            });
+        }
+
+        
+            
+        
+        function addDiagnosis(diagnosisId) {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("AddDiagnosis", "Prescription")',
+                data: {
+                    prescriptionId: '@Model.Id',
+                    diagnosisId: diagnosisId 
+                },
+                success: function (res) {
+                    fillDiagnoses();
+                }
+            });
+        }
+        $(function () {
+            $("#diagnosis").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("SearchDiagnosis", "Diagnosis")',
+                        data: { searchTerm: request.term },
+                        dataType: "json",
+                        type: "GET",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.name,
+                                    value: item.id
+                                };
+                            }));
+                        }
+                    });
+                },
+                minLength: 3,
+                select: function (event, ui) {
+                    $("#diagnosis").val('');
+                    $("#diagnosisId").val(ui.item.value);
+                    addDiagnosis(ui.item.value);
+                    return false;
+                }
+            });
+        });
+    </script>
+}
