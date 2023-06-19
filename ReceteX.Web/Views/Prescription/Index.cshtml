@@ -139,12 +139,13 @@
                 <tr>
                     <td>
                         <select class="form-select" id="ddlDescriptionTypes">
+                            <option value="0">Lütfen Seçiniz</option>
                         </select>
                     </td>
                     <td>
-                        <input type="text" id="txtAciklama" placeholder="Açıklama eklenecekse boş bırakılamaz" class="form-control">
+                        <input type="text" id="txtDescription" readonly placeholder="Açıklama eklemek için önce türünü seçiniz" class="form-control">
                     </td>
-                    <td><input type="button" class="btn btn-success" value="Ekle"></td>
+                    <td><a type="button" id="btnAddDiscription" class="btn btn-success d-none">Ekle</a></td>
                 </tr>
             </tbody>
         </table>
@@ -157,6 +158,8 @@
                     <th>İşlemler</th>
                 </tr>
             </thead>
+            <tbody id="tblDescriptions">
+            </tbody>
         </table>
     </div>
 </div>
@@ -171,7 +174,7 @@
             </div>
             <div class="mb-3">
                 <label for="HastaGsm" class="form-label">Hasta GSM</label>
-                <input type="text" placeholder="Başında sıfır olmadan hastanın telefon numarasını giriniz" id="HastaGsm" class="form-control input-mask" data-inputmask=" 'mask' : '999-999-99-99' ">
+                <input type="text" placeholder="Başında sıfır olmadan hastanın telefon numarasını giriniz" id="HastaGsm" class="form-control input-mask" data-inputmask=" 'mask' : '599-999-99-99' ">
             </div>
             <button type="submit" class="btn btn-success">Kaydet</button>
         </form>
@@ -209,228 +212,309 @@
                     $("#tblMedicines").empty();
                     for (var medicine of res.prescriptionMedicines) {
                         $("#tblMedicines").append(`<tr>
-                        <td>${medicine.medicine.name}</td>
-                        <td>${medicine.dose1} X ${medicine.dose2}</td>
-                        <td>${medicine.medicineUsagePeriod.name} ${medicine.period} Kez</td>
-                        <td>${medicine.quantity}</td>
-                        <td>${medicine.medicineUsageType.name}</td>
-                        <td><a  class="btn btn-danger" onclick="removeMedicine('${medicine.id}')"><i class="dripicons-trash"></i></a></td></tr>`);
-                        
+                                                                <td>${medicine.medicine.name}</td>
+                                                                <td>${medicine.dose1} X ${medicine.dose2}</td>
+                                                                <td>${medicine.medicineUsagePeriod.name} ${medicine.period} Kez</td>
+                                                                <td>${medicine.quantity}</td>
+                                                                <td>${medicine.medicineUsageType.name}</td>
+                                                                <td><a  class="btn btn-danger" onclick="removeMedicine('${medicine.id}')"><i class="dripicons-trash"></i></a></td></tr>`);
+
                     }
                 }
             });
         }
 
-        function fillTypes() {
-            $.ajax({
-                type: 'GET',
-                url: '@Url.Action("GetAll", "MedicineUsageType")',
-
-                success: function (res) {
-
-                    for (var medicineUsageType of res) {
-
-                        $("#ddlMedicineUsageTypes").append(new Option(medicineUsageType.name, medicineUsageType.remoteId + "|" + medicineUsageType.id));
-                    }
-                }
-            });
-
-            $.ajax({
-                type: 'GET',
-                url: '@Url.Action("GetAll", "DescriptionType")',
-
-                success: function (res) {
-
-                    for (var descriptionType of res) {
-
-                        $("#ddlDescriptionTypes").append(new Option(descriptionType.name, descriptionType.remoteId + "|" + descriptionType.id));
-                    }
-                }
-            });
-
-            $.ajax({
-                type: 'GET',
-                url: '@Url.Action("GetAll", "MedicineUsagePeriod")',
-
-                success: function (res) {
-
-                    for (var medicineUsagePeriod of res) {
-
-                        $("#ddlMedicineUsagePeriods").append(new Option(medicineUsagePeriod.name, medicineUsagePeriod.remoteId + "|" + medicineUsagePeriod.id));
-                    }
-                }
-            });
-        }
-
-        function addDiagnosis(diagnosisId) {
+        function fillDescriptions() {
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("AddDiagnosis", "Prescription")',
-                data: { prescriptionId: '@Model.Id', diagnosisId: diagnosisId },
+                url: '@Url.Action("GetDescriptions","Discription")',
+                data: { prescriptionId: "@Model.Id" },
                 success: function (res) {
-                    fillDiagnoses();
+
+                    for (var description of res) {
+                        $("#tblDescriptions").append(`
+                            <tr>
+                            <td>${description.descriptionType.name}</td>
+                            <td>${description.text}</td>
+                            <td>Sil</td>
+                            )`
+                            }
+                        }
+
+                    }
+                    })
                 }
-            });
-        }
 
-        function addMedicine() {
-            let prescriptionId = '@Model.Id';
-            let medicineId = $("#medicineId").val();
-            let dose1 = $("#txtDose1").val();
-            let dose2 = $("#txtDose2").val();
-            let period = $("#txtPeriod").val();
-            let medicineUsagePeriodId = $("#ddlMedicineUsagePeriods").val().split('|')[1];
-            let quantity = $("#txtQuantity").val();
-            let medicineUsageTypeId = $("#ddlMedicineUsageTypes").val().split('|')[1];
+                function fillTypes() {
+                    $.ajax({
+                        type: 'GET',
+                        url: '@Url.Action("GetAll", "MedicineUsageType")',
 
-            let medicine = {
-                prescriptionId: prescriptionId,
-                medicineId: medicineId,
-                quantity: quantity,
-                dose1: dose1,
-                dose2: dose2,
-                period: period,
-                medicineUsagePeriodId: medicineUsagePeriodId,
-                medicineUsageTypeId: medicineUsageTypeId
-            }
+                        success: function (res) {
 
-            $.ajax({
-                type: 'POST',
-                url: '@Url.Action("AddMedicine", "Prescription")',
-                data: {
-                    prescriptionId: prescriptionId,
-                    prescriptionMedicine: medicine
-                },
-                success: function (res) {
-                    fillPrescriptionMedicines();
-                    $("#txtMedicine").val('');
-                    $("#txtDose1").val('2');
-                    $("#txtDose2").val('1');
-                    $("#txtPeriod").val('1');
-                    $("#txtQuantity").val('1');
-                    $('#btnAddMedicine').stop().fadeOut(500, function () {
-                        $('#btnAddMedicine').addClass('d-none');
+                            for (var medicineUsageType of res) {
+
+                                $("#ddlMedicineUsageTypes").append(new Option(medicineUsageType.name, medicineUsageType.remoteId + "|" + medicineUsageType.id));
+                            }
+                        }
+                    });
+
+                    $.ajax({
+                        type: 'GET',
+                        url: '@Url.Action("GetAll", "DescriptionType")',
+
+                        success: function (res) {
+
+                            for (var descriptionType of res) {
+
+                                $("#ddlDescriptionTypes").append(new Option(descriptionType.name, descriptionType.remoteId + "|" + descriptionType.id));
+                            }
+                        }
+                    });
+
+                    $.ajax({
+                        type: 'GET',
+                        url: '@Url.Action("GetAll", "MedicineUsagePeriod")',
+
+                        success: function (res) {
+
+                            for (var medicineUsagePeriod of res) {
+
+                                $("#ddlMedicineUsagePeriods").append(new Option(medicineUsagePeriod.name, medicineUsagePeriod.remoteId + "|" + medicineUsagePeriod.id));
+                            }
+                        }
                     });
                 }
-            });
-        }
 
-        function removeMedicine(prescriptionMedicineId) {
-            Swal.fire({
-                title: 'İlacı listeden kaldırmak istediğinizden emin misiniz?',
-                showDenyButton: true,
-                showCancelButton: false,
-                confirmButtonText: 'Evet',
-                denyButtonText: `Hayır`,
-            }).then((result) => {
-                /* Read more about isConfirmed, isDenied below */
-                if (result.isConfirmed) {
+                function addDiagnosis(diagnosisId) {
                     $.ajax({
                         type: 'POST',
-                        url: '@Url.Action("RemoveMedicine","Prescription")',
-                        data: {
-                            prescriptionId: '@Model.Id',
-                            prescriptionMedicineId: prescriptionMedicineId
-
-                        },
-                        success: function (res) {
-                            fillPrescriptionMedicines();
-                        }
-                    })
-
-                }
-            })
-        }
-
-        function removeDiagnosis(diagnosisId) {
-            Swal.fire({
-                title: 'Tanıyı listeden kaldırmak istediğinizden emin misiniz?',
-                showDenyButton: true,
-                showCancelButton: false,
-                confirmButtonText: 'Evet',
-                denyButtonText: `Hayır`,
-            }).then((result) => {
-                /* Read more about isConfirmed, isDenied below */
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: 'POST',
-                        url: '@Url.Action("RemoveDiagnosis","Prescription")',
-                        data: {
-                            prescriptionId: '@Model.Id',
-                            diagnosisId: diagnosisId
-
-                        },
+                        url: '@Url.Action("AddDiagnosis", "Prescription")',
+                        data: { prescriptionId: '@Model.Id', diagnosisId: diagnosisId },
                         success: function (res) {
                             fillDiagnoses();
                         }
+                    });
+                }
+
+                function addMedicine() {
+                    let prescriptionId = '@Model.Id';
+                    let medicineId = $("#medicineId").val();
+                    let dose1 = $("#txtDose1").val();
+                    let dose2 = $("#txtDose2").val();
+                    let period = $("#txtPeriod").val();
+                    let medicineUsagePeriodId = $("#ddlMedicineUsagePeriods").val().split('|')[1];
+                    let quantity = $("#txtQuantity").val();
+                    let medicineUsageTypeId = $("#ddlMedicineUsageTypes").val().split('|')[1];
+
+                    let medicine = {
+                        prescriptionId: prescriptionId,
+                        medicineId: medicineId,
+                        quantity: quantity,
+                        dose1: dose1,
+                        dose2: dose2,
+                        period: period,
+                        medicineUsagePeriodId: medicineUsagePeriodId,
+                        medicineUsageTypeId: medicineUsageTypeId
+                    }
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '@Url.Action("AddMedicine", "Prescription")',
+                        data: {
+                            prescriptionId: prescriptionId,
+                            prescriptionMedicine: medicine
+                        },
+                        success: function (res) {
+                            fillPrescriptionMedicines();
+                            $("#txtMedicine").val('');
+                            $("#txtDose1").val('2');
+                            $("#txtDose2").val('1');
+                            $("#txtPeriod").val('1');
+                            $("#txtQuantity").val('1');
+                            $('#btnAddMedicine').stop().fadeOut(500, function () {
+                                $('#btnAddMedicine').addClass('d-none');
+                            });
+                        }
+                    });
+                }
+
+                function addDescription() {
+
+                    //let descriptionText = $("#txtDescription").val();
+                    //let descriptiyonTypeId = $("#ddlDescriptionTypes").val().split('|')[1];
+                    //let prescriptionId = '@Model.Id';
+
+
+                    //let description = {
+                    //    text: descriptionText,
+                    //    descriptiyonTypeId: $("#ddlDescriptionTypes").val(),
+                    //}
+
+                    //let data = {
+                    //    prescriptionId: prescriptionId,
+                    //    description : description
+                    //}
+                    //$.ajax({
+                    //    type: 'POST',
+                    //    url: '@Url.Action("AddDescription", "Description")',
+                    //    data: data,
+                    //    success: function (res) {
+
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '@Url.Action("AddDescription", "Description")',
+                        data: description: { prescriptionId: '@Model.Id', text: $("#txtDescription").val(), descriptiyonTypeId: $("#ddlDescriptionTypes").val().split('|')[1] },
+                        success: function (res) {
+
+                            Swal.fire({
+
+                            }).then((result) => {
+
+                            })
+
+
+
+                            $("#ddlDescriptionTypes").val('0');
+                            $("#txtDescription").val('');
+
+
+
+                            $('#btnAddDiscription').stop().fadeOut(500, function () {
+                                $('#btnAddDiscription').addClass('d-none');
+                            });
+                        }
+                    });
+
+                }
+
+                function removeMedicine(prescriptionMedicineId) {
+                    Swal.fire({
+                        title: 'İlacı listeden kaldırmak istediğinizden emin misiniz?',
+                        showDenyButton: true,
+                        showCancelButton: false,
+                        confirmButtonText: 'Evet',
+                        denyButtonText: `Hayır`,
+                    }).then((result) => {
+                        /* Read more about isConfirmed, isDenied below */
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                type: 'POST',
+                                url: '@Url.Action("RemoveMedicine","Prescription")',
+                                data: {
+                                    prescriptionId: '@Model.Id',
+                                    prescriptionMedicineId: prescriptionMedicineId
+
+                                },
+                                success: function (res) {
+                                    fillPrescriptionMedicines();
+                                }
+                            })
+
+                        }
+                    })
+                }
+
+                function removeDiagnosis(diagnosisId) {
+                    Swal.fire({
+                        title: 'Tanıyı listeden kaldırmak istediğinizden emin misiniz?',
+                        showDenyButton: true,
+                        showCancelButton: false,
+                        confirmButtonText: 'Evet',
+                        denyButtonText: `Hayır`,
+                    }).then((result) => {
+                        /* Read more about isConfirmed, isDenied below */
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                type: 'POST',
+                                url: '@Url.Action("RemoveDiagnosis","Prescription")',
+                                data: {
+                                    prescriptionId: '@Model.Id',
+                                    diagnosisId: diagnosisId
+
+                                },
+                                success: function (res) {
+                                    fillDiagnoses();
+                                }
+                            })
+
+                        }
+                    })
+                }
+
+                $(function () {
+                    fillTypes();
+                    $(".touchspin").TouchSpin({ min: 0, max: 100, step: 1, decimals: 0 });
+                    $(".input-mask").inputmask();
+
+
+                    $("#ddlDescriptionTypes").on('change', function () {
+                        if ($("#ddlDescriptionTypes").val() != '0') {
+                            $("#txtDescription").removeAttr("readonly");
+                        }
+                        else {
+                            $("#txtDescription").attr("readonly", true).val("");
+                        }
                     })
 
-                }
-            })
-        }
-
-        $(function () {
-            fillTypes();
-            $(".touchspin").TouchSpin({ min: 0, max: 100, step: 1, decimals: 0 });
-            $(".input-mask").inputmask();
-
-            $("#diagnosis").autocomplete({
-                source: function (request, response) {
-                    console.log(response);
-                    $.ajax({
-                        url: '@Url.Action("SearchDiagnosis", "Diagnosis")',
-                        data: { searchTerm: request.term },
-                        dataType: "json",
-                        type: "GET",
-                        success: function (data) {
-                            console.log(data);
-                            response($.map(data, function (item) {
-                                return {
-                                    label: item.name,
-                                    value: item.id
-                                };
-                            }));
+                    $("#diagnosis").autocomplete({
+                        source: function (request, response) {
+                            console.log(response);
+                            $.ajax({
+                                url: '@Url.Action("SearchDiagnosis", "Diagnosis")',
+                                data: { searchTerm: request.term },
+                                dataType: "json",
+                                type: "GET",
+                                success: function (data) {
+                                    console.log(data);
+                                    response($.map(data, function (item) {
+                                        return {
+                                            label: item.name,
+                                            value: item.id
+                                        };
+                                    }));
+                                }
+                            });
+                        },
+                        minLength: 3,
+                        select: function (event, ui) {
+                            $("#diagnosis").val('');
+                            $("#diagnosisId").val(ui.item.value);
+                            addDiagnosis(ui.item.value);
+                            return false;
                         }
                     });
-                },
-                minLength: 3,
-                select: function (event, ui) {
-                    $("#diagnosis").val('');
-                    $("#diagnosisId").val(ui.item.value);
-                    addDiagnosis(ui.item.value);
-                    return false;
-                }
-            });
 
-            $("#txtMedicine").autocomplete({
-                source: function (request, response) {
-                    console.log(response);
-                    $.ajax({
-                        url: '@Url.Action("SearchMedicine", "Medicine")',
-                        data: { searchTerm: request.term },
-                        dataType: "json",
-                        type: "GET",
-                        success: function (data) {
-                            console.log(data);
-                            response($.map(data, function (item) {
-                                return {
-                                    label: item.name,
-                                    value: item.id
-                                };
-                            }));
+                    $("#txtMedicine").autocomplete({
+                        source: function (request, response) {
+                            console.log(response);
+                            $.ajax({
+                                url: '@Url.Action("SearchMedicine", "Medicine")',
+                                data: { searchTerm: request.term },
+                                dataType: "json",
+                                type: "GET",
+                                success: function (data) {
+                                    console.log(data);
+                                    response($.map(data, function (item) {
+                                        return {
+                                            label: item.name,
+                                            value: item.id
+                                        };
+                                    }));
+                                }
+                            });
+                        },
+                        minLength: 3,
+                        select: function (event, ui) {
+                            $("#txtMedicine").val(ui.item.label);
+                            $("#medicineId").val(ui.item.value);
+                            $('#btnAddMedicine').removeClass('d-none').stop().animate({ opacity: 1 }, 500);
+                            //addDiagnosis(ui.item.value);
+                            return false;
                         }
                     });
-                },
-                minLength: 3,
-                select: function (event, ui) {
-                    $("#txtMedicine").val(ui.item.label);
-                    $("#medicineId").val(ui.item.value);
-                    $('#btnAddMedicine').removeClass('d-none').stop().animate({ opacity: 1 }, 500);
-                    //addDiagnosis(ui.item.value);
-                    return false;
-                }
-            });
-        });
+                });
 
     </script>
 }
