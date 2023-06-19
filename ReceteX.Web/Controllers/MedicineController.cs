@@ -53,7 +53,7 @@ namespace ReceteX.Web.Controllers
 
                     if (medSilinmis != null)
                     {
-                        medSilinmis.IsDeleted = false;
+                        medSilinmis.isDeleted = false;
                         unitOfWork.Medicines.Update(medSilinmis);
                     }
                 }
@@ -66,7 +66,7 @@ namespace ReceteX.Web.Controllers
             {
                 if (!medicinesFromXmlEnumerable.Any(x => x.SelectSingleNode("barkod").InnerText == medicine.Barcode))
                 {
-                    medicine.IsDeleted = true;
+                    medicine.isDeleted = true;
                     unitOfWork.Medicines.Update(medicine);
                 }
 

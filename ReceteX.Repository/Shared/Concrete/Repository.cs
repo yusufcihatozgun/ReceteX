@@ -38,17 +38,17 @@ namespace ReceteX.Repository.Shared.Concrete
         }
         public virtual IQueryable<T> GetAll()
         {
-            return _dBSet.Where(x => x.IsDeleted == false);
+            return _dBSet.Where(x => x.isDeleted == false);
         }
 
         public IQueryable<T> GetAllDeleted(Expression<Func<T, bool>> predicate)
         {
-            return _dBSet.Where(t => t.IsDeleted == true).Where(predicate);
+            return _dBSet.Where(t => t.isDeleted == true).Where(predicate);
         }
 
         public IQueryable<T> GetAllDeleted()
         {
-            return _dBSet.Where(t => t.IsDeleted == true);
+            return _dBSet.Where(t => t.isDeleted == true);
         }
 
         
@@ -60,13 +60,13 @@ namespace ReceteX.Repository.Shared.Concrete
 
         public virtual T GetFirstOrDefault(Expression<Func<T, bool>> predicate)
         {
-            return _dBSet.Where(t => t.IsDeleted == false).AsNoTracking().FirstOrDefault(predicate);
+            return _dBSet.Where(t => t.isDeleted == false).AsNoTracking().FirstOrDefault(predicate);
         }
 
         public void Remove(Guid id)
         {
             T entity = _dBSet.Find(id);
-            entity.IsDeleted = true;
+            entity.isDeleted = true;
             _dBSet.Update(entity);
         }
 
@@ -74,7 +74,7 @@ namespace ReceteX.Repository.Shared.Concrete
         {
             foreach (T item in entities)
             {
-                item.IsDeleted = true;
+                item.isDeleted = true;
             }
             _dBSet.UpdateRange(entities);
         }

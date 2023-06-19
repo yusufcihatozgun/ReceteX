@@ -10,7 +10,7 @@ namespace ReceteX.Models
     {
         public Guid Id { get; set; } = new Guid();
         public string? Name { get; set; }
-        public bool IsDeleted { get; set; } = false;
+        public bool isDeleted { get; set; } = false;
         public DateTime DateCreated { get; set; } = DateTime.Now;
     
     }

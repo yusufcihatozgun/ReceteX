@@ -5,6 +5,7 @@
             width: 200px;
             height: 200px;
             border-radius: 20px;
+           
             color: #fff;
             text-align: center;
             display: flex;
@@ -25,7 +26,7 @@
 <div class="d-flex justify-content-center align-items-center">
     <div class="row" style="margin-top:10%">
         <div class="col-6">
-            <a asp-action="Index" asp-controller="Prescription">
+            <a asp-controller="Prescription" asp-action="Index">
             <div class="big-square-button" style=" background-color: #1ed9ad;">
                 <i class="bi bi-pencil-square"></i>
                 Reçete Yaz
@@ -33,12 +34,10 @@
             </a>
         </div>
         <div class="col-6">
-            <a asp-action="Index" asp-controller="Prescription">
             <div class="big-square-button" style=" background-color: #cd5ce0;">
                 <i class="bi bi-journal-medical"></i>
                 Reçete Arşivi
             </div>
-            </a>
         </div>
     </div>
 </div>
