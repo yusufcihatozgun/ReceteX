@@ -1,16 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ReceteX.Models;
 using ReceteX.Repository.Shared.Abstract;
-using ReceteX.Repository.Shared.Concrete;
 using ReceteX.Utility;
-using System.Data;
-using System.Linq;
 using System.Xml;
 
 namespace ReceteX.Web.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class DiagnosisController : Controller
     {
         private readonly IUnitOfWork unitOfWork;
@@ -22,49 +18,84 @@ namespace ReceteX.Web.Controllers
             this.xmlRetriever = xmlRetriever;
         }
 
+
         public IActionResult Index()
         {
             return View();
         }
-        
 
-        public async Task<IActionResult> ParseAndSaveFromXml(string xmlContent)
+
+        public async Task ParseAndSaveFromXml(string xmlContent)
         {
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlContent);
-            XmlNodeList diagnoses = xmlDoc.SelectNodes("/tanilar/tani");
+            XmlNodeList diagnosesFromXml = xmlDoc.SelectNodes("/tanilar/tani");
+            //datatabse'deki tüm aktif nesneler
+            IQueryable<Diagnosis> diagnosesFromDb = unitOfWork.Diagnoses.GetAll().AsNoTracking().OrderBy(m => m.Code).ToList().AsQueryable<Diagnosis>();
 
-            foreach (XmlNode diagnosis in diagnoses)
+            //database'deki tüm silinmiş nesneler
+            IQueryable<Diagnosis> deletedDiagnosesFromDb = unitOfWork.Diagnoses.GetAllDeleted().OrderBy(m => m.Code).ToList().AsQueryable<Diagnosis>();
+
+            //Yeni kayıtları aktaran döngümüz.
+            foreach (XmlNode diagnosis in diagnosesFromXml)
             {
-                Diagnosis dia = new Diagnosis();
+                string codeFromXml = diagnosis.SelectSingleNode("kod").InnerText;
 
-                dia.Code = diagnosis.SelectSingleNode("kod").InnerText;
-                dia.Name = diagnosis.SelectSingleNode("ad").InnerText;
-                unitOfWork.Diagnoses.Add(dia);
+                if (!diagnosesFromDb.Any(m => m.Code == codeFromXml))
+                {
+                    Diagnosis diag = new Diagnosis();
+                    diag.Name = diagnosis.SelectSingleNode("ad").InnerText;
+                    diag.Code = codeFromXml;
+                    unitOfWork.Diagnoses.Add(diag);
+                }
+                else
+                {
+                    Diagnosis medSilinmis = deletedDiagnosesFromDb.FirstOrDefault(m => m.Code == codeFromXml);
+                    if (medSilinmis != null)
+                    {
+                        medSilinmis.isDeleted = false;
+                        unitOfWork.Diagnoses.Update(medSilinmis);
+                    }
+                }
             }
             unitOfWork.Save();
-            return Ok();
+
+            //Kaynaktan silinmiş olan ilaçları databasede isdelete=true yapan döngümüz
+            IEnumerable<XmlNode> diagnosesFromXmlEnumarable = xmlDoc.SelectNodes("/tanilar/tani").Cast<XmlNode>();
+
+            foreach (Diagnosis tani in diagnosesFromDb)
+            {
+                if (!diagnosesFromXmlEnumarable.Any(x => x.SelectSingleNode("kod").InnerText == tani.Code))
+                {
+                    tani.isDeleted = true;
+                    unitOfWork.Diagnoses.Update(tani);
+                }
+            }
+            unitOfWork.Save();
         }
+
+
         public async Task<IActionResult> UpdateDiagnosesList()
         {
-            string content = await xmlRetriever.GetXmlContent("http://www.ibys.com.tr/exe/tanilar.xml");
+            string content = await xmlRetriever.GetXmlContent("https://www.ibys.com.tr/exe/tanilar.xml");
             await ParseAndSaveFromXml(content);
-
             return RedirectToAction("Index");
         }
 
+
+        [HttpGet]
         public IActionResult GetAll()
         {
             return Json(new { data = unitOfWork.Diagnoses.GetAll() });
         }
 
+
         [HttpGet]
         public JsonResult SearchDiagnosis(string searchTerm)
         {
-            var diagnoses = unitOfWork.Diagnoses.GetAll(d => d.Name.ToLower().Contains(searchTerm.ToLower()) || d.Code.ToLower().Contains(searchTerm.ToLower())).Select(d => new { d.Id, Name=d.Code + "-" + d.Name }).ToList();
+            var diagnoses = unitOfWork.Diagnoses.GetAll(d => d.Name.ToLower().Contains(searchTerm.ToLower()) || d.Code.ToLower().Contains(searchTerm.ToLower())).Select(d => new { d.Id, Name = d.Code + " - " + d.Name }).ToList();
 
             return Json(diagnoses);
         }
-
     }
 }

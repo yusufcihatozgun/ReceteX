@@ -9,7 +9,7 @@ namespace ReceteX.Models
     public class Description : BaseModel
     {
         public string Text { get; set; }
-        public Guid DiscriptionTypeId { get; set; }
+        public Guid DescriptionTypeId { get; set; }
         public virtual DescriptionType? DescriptionType { get; set; }
         public Guid PrescriptionId { get; set; }
         public virtual Prescription? Prescription { get; set; }
