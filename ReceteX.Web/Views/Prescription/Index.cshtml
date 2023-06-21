@@ -31,22 +31,30 @@
     </style>
 }
 
-<div>
-    <div class="card">
-        <div class="card-header text-white bg-success bg-gradient text-center">
-            <span class="fs-6">Tanı Ekleme Bölümü</span>
-        </div>
-        <div class="card-body">
-            <div class="ui-widget">
-                <input type="text" id="diagnosis" name="diagnosis" class="form-control text-center" placeholder="Tanı adının veya kodunun en az ilk 3 harfini yazınız, sonra listeden seçiniz..." />
-                <input type="hidden" id="diagnosisId" name="diagnosisId" />
+<div class="card border-light mb-3">
+    <div class="card-header text-white bg-success bg-gradient fs-5"><i class="mdi mdi-stethoscope"></i> Tanılar</div>
+    <div class="card-body">
+        <div class="mb-3">
+            <div class="card-body">
+                <div class="ui-widget">
+                    <input type="text" id="diagnosis" name="diagnosis" class="form-control text-center" placeholder="Tanı adının veya kodunun en az ilk 3 harfini yazınız, sonra listeden seçiniz..." />
+                    <input type="hidden" id="diagnosisId" name="diagnosisId" />
+                </div>
+                <table class="table table-hover table-bordered table-striped" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Tanı Kodu</th>
+                            <th>Tanı Adı</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="divDiagnoses">
+                    </tbody>
+                </table>
             </div>
-            <div id="divDiagnoses" class="text-md-center mt-3"></div>
         </div>
     </div>
 </div>
-
-
 
 <div class="card border-light mb-3">
     <div class="card-header text-white bg-success bg-gradient fs-5"><i class="fas fa-prescription-bottle-alt"></i> İlaçlar</div>
@@ -168,19 +176,18 @@
 <div class="card border-light mb-3">
     <div class="card-header text-white bg-success bg-gradient fs-5"><i class="fas fa-user-cog"></i> Hasta Bilgileri</div>
     <div class="card-body">
-        <form action="" class="form-control">
-            <div class="mb-3">
-                <label for="HastaTCNO" class="form-label">Hasta T.C Kimlik No</label>
-                <input type="text" maxlength="11" placeholder="Hastaya ait 11 Haneli Tc Kimlik No giriniz" id="HastaTCNO" class="form-control input-mask" data-inputmask="'mask': '9', 'repeat': 11, 'greedy' : false">
-            </div>
-            <div class="mb-3">
-                <label for="HastaGsm" class="form-label">Hasta GSM</label>
-                <input type="text" placeholder="Başında sıfır olmadan hastanın telefon numarasını giriniz" id="HastaGsm" class="form-control input-mask" data-inputmask=" 'mask' : '599-999-99-99' ">
-            </div>
-            <button type="submit" class="btn btn-success">Kaydet</button>
-        </form>
+        <div class="mb-3">
+            <label for="HastaTCNO" class="form-label">Hasta T.C Kimlik No</label>
+            <input type="text" maxlength="11" placeholder="Hastaya ait 11 Haneli Tc Kimlik No giriniz" id="HastaTCNO" class="form-control" data-inputmask=" 'mask': '9', 'repeat': 11, 'greedy' : false">
+        </div>
+        <div class="mb-3">
+            <label for="HastaGsm" class="form-label">Hasta GSM</label>
+            <input type="text" placeholder="Başında sıfır olmadan hastanın telefon numarasını giriniz" id="HastaGsm" class="form-control" data-inputmask=" 'mask' : '599-999-99-99' ">
+        </div>
     </div>
 </div>
+
+<a href="#" class="btn btn-primary waves-effect waves-light mb-1 form-control">Kaydet</a>
 
 @section Scripts{
 
@@ -198,7 +205,7 @@
                 success: function (res) {
                     $("#divDiagnoses").empty();
                     for (var diagnose of res[0].diagnoses) {
-                        $("#divDiagnoses").append(`<div>${diagnose.code} ${diagnose.name} <a href="#" onclick="removeDiagnosis('${diagnose.id}')" class="btn btn-sm btn-danger"><i class="dripicons-trash"></i></a></div>`);
+                        $("#divDiagnoses").append(`<tr><td>${diagnose.code}</td> <td>${diagnose.name}</td> <td><a href="#" onclick="removeDiagnosis('${diagnose.id}')" class="btn btn-sm btn-danger"><i class="dripicons-trash"></i></a></td>`);
                     }
                 }
             });
@@ -226,34 +233,25 @@
                 data: {
                     prescriptionId: '@Model.Id'
                 },
-                success: function (res) 
-                {
+                success: function (res) {
                     console.log(res);
                     $("#tblDescriptions").empty();
-                    for (var description of res)
-                    {
-                        $("#tblDescriptions").append(`
-                                    <tr>
-                                            <td>${description.descriptionType.name}</td>
-                                            <td>${description.text}</td>
-                                                    <td class="text-center"><a onclick="removeDescription('${description.id}')" class="btn btn-danger"><i class="dripicons-trash"></i></a></td>     `);
+                    for (var description of res) {
+                        $("#tblDescriptions").append(`<tr><td>${description.descriptionType.name}</td><td>${description.text}</td><td class="text-center"><a onclick="removeDescription('${description.id}')" class="btn btn-danger"><i class="dripicons-trash"><i></a></td>`
+                        );
                     }
-                },
-                error: function (xhr, status, error) {
-                    console.log("Hata verdi: " + error);
                 }
             });
         }
+
         function removeDescription(descriptionId) {
             Swal.fire({
                 title: 'Silmek istediğinizden emin misiniz ?',
-
                 showCancelButton: true,
                 confirmButtonText: 'Kaydet',
                 cancelButtonText: 'Vazgeç'
 
             }).then((result) => {
-                /* Read more about isConfirmed, isDenied below */
                 if (result.isConfirmed) {
 
                     $.ajax({
@@ -273,7 +271,7 @@
             })
         }
 
-        function fillTypes() {
+        function fillDropDowns() {
             $.ajax({
                 type: 'GET',
                 url: '@Url.Action("GetAll", "MedicineUsageType")',
@@ -314,6 +312,7 @@
                 }
             });
         }
+
         function addDiagnosis(diagnosisId) {
             $.ajax({
                 type: 'POST',
@@ -324,6 +323,7 @@
                 }
             });
         }
+
         function addMedicine() {
             let prescriptionId = '@Model.Id';
             let medicineId = $("#medicineId").val();
@@ -367,6 +367,7 @@
         }
 
         function addDescription() {
+            $("#btnAddDescription").addClass("d-none");
             let descriptionText = $("#txtDescription").val();
             let descriptionTypeId = $("#ddlDescriptionTypes").val().split('|')[1];
             let prescriptionId = '@Model.Id';
@@ -387,6 +388,11 @@
                 url: '@Url.Action("AddDescription","Prescription")',
                 data: data,
                 success: function (res) {
+                    $("#txtDescription").val('');
+                    $("#ddlDescriptionTypes").val(0);
+                    $('#btnAddDescription').stop().fadeOut(500, function () {
+                        $('#btnAddDescription').addClass('d-none');
+                    });
                     fillDescriptions();
                 }
             })
@@ -420,7 +426,7 @@
 
         function removeDiagnosis(diagnosisId) {
             Swal.fire({
-                title: 'Tanıyı listeden kaldırmak istediğinizden emin misiniz?',
+                title: 'Tanıyı kaldırmak istediğinizden emin misiniz?',
                 showDenyButton: true,
                 showCancelButton: false,
                 confirmButtonText: 'Evet',
@@ -445,13 +451,14 @@
         }
 
         $(function () {
-            fillTypes();
+            fillDropDowns();
             $(".touchspin").TouchSpin({ min: 0, max: 100, step: 1, decimals: 0 });
             $(".input-mask").inputmask();
 
             $("#ddlDescriptionTypes").on('change', function () {
-                if ($("#ddlDescriptionTypes").val() != '0')
+                if ($("#ddlDescriptionTypes").val() != '0'){
                     $("#txtDescription").removeAttr('readonly');
+                }
                 else {
                     $("#txtDescription").attr('readonly', true).val('');
                     $("#btnAddDescription").addClass("d-none");

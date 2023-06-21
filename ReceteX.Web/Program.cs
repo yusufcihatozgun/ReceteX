@@ -28,6 +28,7 @@ namespace ReceteX.Web
             //Repository için dependincy enjection gerekli olan komut.
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<XmlRetriever>();                                               
+            builder.Services.AddScoped<MyXmlWriter>();                                               
 
             // Add services to the container.
             builder.Services.AddControllersWithViews().AddNewtonsoftJson(options =>

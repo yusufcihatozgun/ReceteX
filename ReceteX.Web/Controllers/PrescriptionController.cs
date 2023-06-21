@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReceteX.Models;
 using ReceteX.Repository.Shared.Abstract;
+using ReceteX.Utility;
 using System.Security.Claims;
 
 namespace ReceteX.Web.Controllers
@@ -11,10 +12,12 @@ namespace ReceteX.Web.Controllers
     public class PrescriptionController : Controller
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly MyXmlWriter myXmlWriter;
 
-        public PrescriptionController(IUnitOfWork unitOfWork)
+        public PrescriptionController(IUnitOfWork unitOfWork, MyXmlWriter myXmlWriter)
         {
             this.unitOfWork = unitOfWork;
+            this.myXmlWriter = myXmlWriter;
         }
 
 
@@ -113,6 +116,14 @@ namespace ReceteX.Web.Controllers
             unitOfWork.Prescriptions.Update(asil);
             unitOfWork.Save();
             return Ok();
+        }
+
+        public async Task<IActionResult> PrintXmlDocument(Guid prescriptionId)
+        {
+            Guid asilPrescriptionId = unitOfWork.Prescriptions.GetFirstOrDefault(p => p.Id == prescriptionId).Id;
+            await myXmlWriter.WriteXml(asilPrescriptionId);
+            return RedirectToAction("Index");
+
         }
     }
 }
