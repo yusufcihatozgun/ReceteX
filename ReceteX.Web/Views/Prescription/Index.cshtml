@@ -109,7 +109,7 @@
                     </tr>
                     <tr>
                         <td colspan="8" class="text-center">
-                            <a href="#" class="btn btn-warning d-block w-100 h-100 d-none" onclick="addMedicine()" id="btnAddMedicine"> <i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i> &nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;E&nbsp;&nbsp;&nbsp;&nbsp;K&nbsp;&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;&nbsp;E&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>  &nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i> </a>
+                            <a class="btn btn-warning d-block w-100 h-100 d-none" onclick="addMedicine()" id="btnAddMedicine"> <i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i> &nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;E&nbsp;&nbsp;&nbsp;&nbsp;K&nbsp;&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;&nbsp;E&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>  &nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fas fa-chevron-down"></i> </a>
                         </td>
                     </tr>
                 </tbody>
@@ -178,16 +178,17 @@
     <div class="card-body">
         <div class="mb-3">
             <label for="HastaTCNO" class="form-label">Hasta T.C Kimlik No</label>
-            <input type="text" maxlength="11" placeholder="Hastaya ait 11 Haneli Tc Kimlik No giriniz" id="HastaTCNO" class="form-control" data-inputmask=" 'mask': '9', 'repeat': 11, 'greedy' : false">
+            <input type="text" maxlength="11" placeholder="Hastaya ait 11 Haneli Tc Kimlik No giriniz" id="txtPatientTCK" class="form-control" data-inputmask=" 'mask': '9', 'repeat': 11, 'greedy' : false">
         </div>
         <div class="mb-3">
             <label for="HastaGsm" class="form-label">Hasta GSM</label>
-            <input type="text" placeholder="Başında sıfır olmadan hastanın telefon numarasını giriniz" id="HastaGsm" class="form-control" data-inputmask=" 'mask' : '599-999-99-99' ">
         </div>
+        <input type="text" id="txtPatientGSM" placeholder="Başında sıfır olmadan hastanın telefon numarasını giriniz" class="form-control input-mask" data-inputmask=" 'mask' : '599-999-99-99' ">
     </div>
 </div>
 
-<a href="#" class="btn btn-primary waves-effect waves-light mb-1 form-control">Kaydet</a>
+
+<a href="#" onclick="sendPrescription()" class="btn btn-primary waves-effect waves-light mb-1 form-control">Kaydet</a>
 
 @section Scripts{
 
@@ -197,6 +198,31 @@
 
 
     <script>
+
+        function sendPrescription() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("AddPatient", "Prescription")',
+                data: {
+                    patientTCK: $("#txtPatientTCK").val(),
+                    patientGSM: $("#txtPatientGSM").val().replaceAll("-",""),
+                    prescriptionId: '@Model.Id'
+                },
+                success: function (res) {
+                    $("#txtPatientTXK").val("");
+                    $("#txtPatientGSM").val(""),
+                        $.ajax({
+                            type: 'POST',
+                            url: '@Url.Action("PrintXmlDocument", "Prescription")',
+                            data: { prescriptionId: '@Model.Id' },
+                            success: function (res) {
+                                console.log(res);
+                            }
+                        });
+                }
+            })
+        }
+
         function fillDiagnoses() {
             $.ajax({
                 type: 'POST',
@@ -456,7 +482,7 @@
             $(".input-mask").inputmask();
 
             $("#ddlDescriptionTypes").on('change', function () {
-                if ($("#ddlDescriptionTypes").val() != '0'){
+                if ($("#ddlDescriptionTypes").val() != '0') {
                     $("#txtDescription").removeAttr('readonly');
                 }
                 else {

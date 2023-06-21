@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ReceteX.Models;
 using ReceteX.Repository.Shared.Abstract;
+using System.Text;
 using System.Xml;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ReceteX.Utility
 {
@@ -15,16 +18,20 @@ namespace ReceteX.Utility
 		}
 
 
-        public async Task WriteXml(Guid prescriptionId)
+        public async Task<XmlDocument> WriteXml(Guid prescriptionId)
 		{
-			Prescription prescription = unitOfWork.Prescriptions.GetAll(p => p.Id == prescriptionId).Include(p => p.Diagnoses).Include(p => p.AppUser).Include(p => p.PrescriptionMedicines).First();
+			Prescription prescription = unitOfWork.Prescriptions.GetAll(p => p.Id == prescriptionId).Include(p => p.Diagnoses).Include(p => p.AppUser).Include(p => p.PrescriptionMedicines).ThenInclude(pm=>pm.MedicineUsagePeriod).Include(p => p.PrescriptionMedicines).ThenInclude(pm=>pm.Medicine).Include(p => p.PrescriptionMedicines).ThenInclude(pm=>pm.MedicineUsageType).First();
 			List<PrescriptionMedicine> medicines = prescription.PrescriptionMedicines.ToList<PrescriptionMedicine>();
 			List<Diagnosis> diagnoses = prescription.Diagnoses.ToList<Diagnosis>();
 
 
 			XmlDocument xmlDoc = new XmlDocument();
 
-			XmlNode ereceteBilgisiNode = xmlDoc.CreateElement("ereceteBilgisi");
+            // XmlDeclaration oluşturulması
+            XmlDeclaration xmlDeclaration = xmlDoc.CreateXmlDeclaration("1.0", "UTF-8", "yes");
+            xmlDoc.AppendChild(xmlDeclaration);
+
+            XmlNode ereceteBilgisiNode = xmlDoc.CreateElement("ereceteBilgisi");
 			xmlDoc.AppendChild(ereceteBilgisiNode);
 
 			XmlNode doktorBransKoduNode = xmlDoc.CreateElement("doktorBransKodu");
@@ -155,15 +162,32 @@ namespace ReceteX.Utility
 			XmlNode dogumTarihiNode = xmlDoc.CreateElement("dogumTarihi");
 			dogumTarihiNode.InnerText = prescription.BirthDate.ToString();
 			kisiDVONode.AppendChild(dogumTarihiNode);
-
+			 
 			XmlNode hastaTcKimlikNoNode = xmlDoc.CreateElement("tcKimlikNo");
 			hastaTcKimlikNoNode.InnerText = prescription.TCKN.ToString();
 			kisiDVONode.AppendChild(hastaTcKimlikNoNode);
 
+			//if (!Directory.Exists(Directory.GetCurrentDirectory() + "/dosyalar/ImzalanacakRecete/"))
+			//{
+			//	Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/dosyalar/ImzalanacakRecete/");
+			//}
 
-			string dosyaAdi = "recete_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xml";
-			string dosyaYolu = @"C:\Users\Yusuf\Desktop" + dosyaAdi;
-			xmlDoc.Save(dosyaYolu);
-		}
+			//         string dosyaAdi = "recete_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xml";
+			//string dosyaYolu = Directory.GetCurrentDirectory+"/dosyalar/İmzalanacakRecete/" + dosyaAdi;
+			//xmlDoc.Save(dosyaYolu);
+
+			string xmlString = 
+
+
+			prescription.XmlToSign = xmlDoc.InnerXml.ToString();
+			unitOfWork.Prescriptions.Update(prescription);
+			unitOfWork.Save();
+
+			byte[] bytes = Encoding.UTF8.GetBytes(xmlString);
+            string base64String = Convert.ToBase64String(bytes);
+
+            return xmlDoc;
+
+        }
 	}
 }

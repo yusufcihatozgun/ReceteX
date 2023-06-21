@@ -19,15 +19,14 @@ namespace ReceteX.Models
         public ICollection<Diagnosis>? Diagnoses { get; set; }
 
 
-        public string? PatientFirstName { get; set; }
-        public string? PatientLastName { get; set; }
+        public string? PatientFirstName { get; set; } = "Yusuf";
+        public string? PatientLastName { get; set; } = "Özgün";
         public string? PatientGsm { get; set; }
         public string? TCKN { get; set; }
         public string? Gender { get; set; } = "E";
         public string? BirthDate { get; set; } = "01.01.1985";
         public string? PrescriptionNo { get; set; }
-
-
-
+        public string? XmlToSign { get; set; }
+        public string? XmlSigned { get; set; }
     }
 }

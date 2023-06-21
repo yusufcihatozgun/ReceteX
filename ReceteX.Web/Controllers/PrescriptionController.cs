@@ -48,7 +48,6 @@ namespace ReceteX.Web.Controllers
         public IActionResult GetDiagnoses(Guid prescriptionId)
         {
             return Json(unitOfWork.Prescriptions.GetAll(p => p.Id == prescriptionId).Include(p => p.Diagnoses));
-
         }
 
 
@@ -112,7 +111,6 @@ namespace ReceteX.Web.Controllers
         {
             Prescription asil = unitOfWork.Prescriptions.GetAll(p => p.Id == prescriptionId).Include(p => p.Diagnoses).First();
             asil.Diagnoses.Remove(asil.Diagnoses.FirstOrDefault(d => d.Id == diagnosisId));
-
             unitOfWork.Prescriptions.Update(asil);
             unitOfWork.Save();
             return Ok();
@@ -122,8 +120,18 @@ namespace ReceteX.Web.Controllers
         {
             Guid asilPrescriptionId = unitOfWork.Prescriptions.GetFirstOrDefault(p => p.Id == prescriptionId).Id;
             await myXmlWriter.WriteXml(asilPrescriptionId);
-            return RedirectToAction("Index");
-
+            return Ok();
         }
+        [HttpPost]
+        public IActionResult AddPatient(Guid prescriptionId,string patientTCK,string patientGSM)
+        {
+            Prescription asil = unitOfWork.Prescriptions.GetAll(p => p.Id == prescriptionId).First();
+            asil.TCKN = patientTCK; 
+            asil.PatientGsm = patientGSM;
+            unitOfWork.Prescriptions.Update(asil);
+            unitOfWork.Save();
+            return Ok();
+        }
+
     }
 }
