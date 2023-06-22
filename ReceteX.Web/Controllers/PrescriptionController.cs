@@ -21,14 +21,61 @@ namespace ReceteX.Web.Controllers
         }
 
 
-        public IActionResult Index()
+        public IActionResult Index(Guid? prescriptionId = null)
         {
-            Prescription prescription = new Prescription();
-            prescription.StatusId = unitOfWork.Statuses.GetFirstOrDefault(s => s.Name == "Taslak").Id;
-            prescription.AppUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            unitOfWork.Prescriptions.Add(prescription);
-            unitOfWork.Save();
-            return View(prescription);
+            if (prescriptionId == null)
+            {
+                Prescription prescription = new Prescription();
+                prescription.StatusId = unitOfWork.Statuses.GetFirstOrDefault(s => s.Name == "Taslak").Id;
+                prescription.AppUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                unitOfWork.Prescriptions.Add(prescription);
+                unitOfWork.Save();
+                return View(prescription);
+            }
+            else
+            {
+                Prescription prescription = unitOfWork.Prescriptions.GetFirstOrDefault(p => p.Id == prescriptionId);
+                return View(prescription);
+            }
+        }
+        public IActionResult ReceteArsivi()
+        {
+            return View();
+        }
+
+        public IActionResult GetAllWithStatuses(Guid? statusId = null)
+        {
+            int pageSize = 10;
+            int currentPage = 2;
+
+            List<Prescription> prescriptions = null;
+
+            if (statusId == null || statusId == Guid.Parse("fb899913-c32d-4f1e-9f16-73ecf891def1"))
+            {
+                prescriptions = unitOfWork.Prescriptions
+                    .GetAll(p => p.StatusId == Guid.Parse("fb899913-c32d-4f1e-9f16-73ecf891def1"))
+                    .Include(p => p.Status)
+                    .OrderByDescending(p => p.DateCreated)
+                                        .ToList();
+            }
+            else if (statusId == Guid.Parse("dd4edb5c-4cac-4fa4-b52a-cd08817c3c0c"))
+            {
+                prescriptions = unitOfWork.Prescriptions
+                    .GetAll(p => p.StatusId == statusId)
+                    .Include(p => p.Status)
+                    .OrderByDescending(p => p.DateCreated)
+                                        .ToList();
+            }
+            else if (statusId == Guid.Parse("69416e64-c670-4d1c-a792-eabc0510f5fd"))
+            {
+                prescriptions = unitOfWork.Prescriptions
+                    .GetAll(p => p.StatusId == statusId)
+                    .Include(p => p.Status)
+                    .OrderByDescending(p => p.DateCreated)
+                    .ToList();
+            }
+
+            return Ok(prescriptions);
         }
 
 
@@ -48,6 +95,12 @@ namespace ReceteX.Web.Controllers
         public IActionResult GetDiagnoses(Guid prescriptionId)
         {
             return Json(unitOfWork.Prescriptions.GetAll(p => p.Id == prescriptionId).Include(p => p.Diagnoses));
+        }
+
+        [HttpPost]
+        public IActionResult GetPatient(Guid prescriptionId)
+        {
+            return Json(unitOfWork.Prescriptions.GetFirstOrDefault(p => p.Id == prescriptionId));
         }
 
 
@@ -123,10 +176,10 @@ namespace ReceteX.Web.Controllers
             return Ok();
         }
         [HttpPost]
-        public IActionResult AddPatient(Guid prescriptionId,string patientTCK,string patientGSM)
+        public IActionResult AddPatient(Guid prescriptionId, string patientTCK, string patientGSM)
         {
             Prescription asil = unitOfWork.Prescriptions.GetAll(p => p.Id == prescriptionId).First();
-            asil.TCKN = patientTCK; 
+            asil.TCKN = patientTCK;
             asil.PatientGsm = patientGSM;
             unitOfWork.Prescriptions.Update(asil);
             unitOfWork.Save();

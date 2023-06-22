@@ -165,6 +165,12 @@
 								<span>Reçete Yaz</span>
 							</a>
 						</li>
+						<li>
+							<a asp-controller="Prescription" asp-action="ReceteArsivi" class="waves-effect">
+								<i class="uil-file-search-alt"></i>
+								<span>Reçete Arşivi</span>
+							</a>
+						</li>
 						@if (User.IsInRole("Admin"))
 						{
 							<li class="menu-title">Yönetsel</li>
@@ -174,7 +180,6 @@
 									<span>İlaç Listesi</span>
 								</a>
 							</li>
-
 							<li>
 								<a asp-controller="Diagnosis" asp-action="Index" class="waves-effect">
 									<i class="mdi mdi-stethoscope"></i>
@@ -183,7 +188,7 @@
 							</li>
 							<li>
 								<a asp-controller="User" asp-action="Index">
-									<i class="uil-users-alt "></i><span class="waves-effect">
+									<i class="uil-users-alt"></i><span class="waves-effect">
 									</span>
 									<span>Kullanıcı Yönetimi</span>
 								</a>

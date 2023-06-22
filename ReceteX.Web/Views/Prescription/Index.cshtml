@@ -188,7 +188,7 @@
 </div>
 
 
-<a href="#" onclick="sendPrescription()" class="btn btn-primary waves-effect waves-light mb-1 form-control">Kaydet</a>
+<a onclick="sendPrescription()" class="btn btn-primary waves-effect waves-light mb-1 form-control">Kaydet</a>
 
 @section Scripts{
 
@@ -205,11 +205,11 @@
                 url: '@Url.Action("AddPatient", "Prescription")',
                 data: {
                     patientTCK: $("#txtPatientTCK").val(),
-                    patientGSM: $("#txtPatientGSM").val().replaceAll("-",""),
+                    patientGSM: $("#txtPatientGSM").val().replaceAll("-", ""),
                     prescriptionId: '@Model.Id'
                 },
                 success: function (res) {
-                    $("#txtPatientTXK").val("");
+                    $("#txtPatientTCK").val("");
                     $("#txtPatientGSM").val(""),
                         $.ajax({
                             type: 'POST',
@@ -236,7 +236,21 @@
                 }
             });
         }
-
+        function fillPatient(){
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetPatient", "Prescription")',
+                data: { prescriptionId: '@Model.Id' },
+                success: function (res) {
+                    console.log("patient");
+                    console.log(res);
+                    $("#txtPatientTCK").val(res.tckn);
+                    $("#txtPatientGSM").inputmask("remove");
+                    $("#txtPatientGSM").val(res.patientGsm);
+                    $("#txtPatientGSM").inputmask("599-999-99-99");
+                }
+            });
+        }
         function fillPrescriptionMedicines() {
             $.ajax({
                 type: 'POST',
@@ -477,6 +491,10 @@
         }
 
         $(function () {
+            fillPatient();
+            fillPrescriptionMedicines();
+            fillDescriptions();
+            fillDiagnoses();
             fillDropDowns();
             $(".touchspin").TouchSpin({ min: 0, max: 100, step: 1, decimals: 0 });
             $(".input-mask").inputmask();

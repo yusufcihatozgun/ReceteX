@@ -1,0 +1,76 @@
+﻿<div class="col-xl-6">
+    <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+        <input type="radio" class="btn-check" name="btnradio" id="btnGongerildi" onclick="getPrescriptionsWithStatusId('fb899913-c32d-4f1e-9f16-73ecf891def1')" autocomplete="off">
+        <label class="btn btn-success" for="btnGongerildi">Gönderildi</label>
+
+        <input type="radio" class="btn-check" name="btnradio" id="btnTaslak" onclick="getPrescriptionsWithStatusId('dd4edb5c-4cac-4fa4-b52a-cd08817c3c0c')" autocomplete="off">
+        <label class="btn btn-warning" for="btnTaslak">Taslak</label>
+
+        <input type="radio" class="btn-check" name="btnradio" id="btnIptalEdildi" onclick="getPrescriptionsWithStatusId('69416e64-c670-4d1c-a792-eabc0510f5fd')" autocomplete="off">
+        <label class="btn btn-danger" for="btnIptalEdildi">İptal Edildi</label>
+    </div>
+</div>
+<br>
+<div>
+    <div class="card">
+        <div class="card-header text-white bg-success bg-gradient">
+            <span class="fs-4">Reçete Arşivi</span>
+        </div>
+        <div class="card-body">
+            <table id="tblPrescriptions" class="table table-bordered table-striped" style="width:100%"></table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var DataTable;
+
+        $(document).ready(function () {
+            getPrescriptionsWithStatusId();
+            DataTable = $('#tblPrescriptions').DataTable({
+                columns: [
+                    {
+                        data: 'id', title: 'Id', render: function (data, type, row) {
+                            if (row.status.name === 'Taslak') {
+                                return '<a href="/Prescription/Index/?prescriptionId=' + data + '">' + data + '</a>';
+                            }
+                            return data;
+                        }
+                    },
+                    { data: 'status.name', title: 'Statüsü' },
+                    { data: 'patientFirstName', title: 'Hasta Adı' },
+                    { data: 'patientLastName', title: 'Soyadı' },
+                    { data: 'tckn', title: 'TCKN' },
+                    { data: 'gender', title: 'Cinsiyeti' },
+                    { data: 'patientGsm', title: 'Hasta GSM' },
+                    { data: 'birthDate', title: 'Doğum Tarihi' },
+                    { data: 'prescriptionNo', title: 'Reçete No' }
+                ]
+            });
+        });
+
+        function getPrescriptionsWithStatusId(statusId) {
+            $.ajax({
+                type: 'GET',
+                url: '/Prescription/GetAllWithStatuses',
+                data: { statusId: statusId },
+                success: function (res) {
+                    console.log(res);
+                    DataTable.clear().rows.add(res).draw();
+                }
+            });
+        }
+
+        function getPrescription(prescriptionId){
+            $.ajax({
+                type:'POST',
+                url:'/Prescription/Index/',
+                data : {prescriptionId : prescriptionId},
+                success: function (res) {
+
+                }
+            })
+        }
+    </script>
+}
